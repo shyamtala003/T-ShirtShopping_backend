@@ -1,0 +1,68 @@
+openapi: 3.0.0
+info:
+  title: Practice app
+  description: simple practice application for swagger-documentation
+  version: 1.0.0
+servers:
+  - url: "{protocol}://localhost:4000/api/{version}"
+    description: basic home route url
+    # - url: https://localhost:4000
+    #   description: given url it's not working yet
+    variables:
+      version:
+        enum:
+          - v1
+          - v2
+        default: v1
+      protocol:
+        enum:
+          - http
+          - https
+        default: http
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+paths:
+  /:
+    get:
+      tags:
+        - Home
+      summary: basic route
+      responses:
+        200:
+          description: all good
+          content:
+            application/json:
+              schema:
+                type: string
+                example: example
+        400:
+          description: page not found
+        500:
+          description: internal server error
+
+  /login:
+    get:
+      tags:
+        - Home
+      summary: basic route
+      responses:
+        200:
+          description: all good
+          content:
+            application/json:
+              schema:
+                type: string
+                example: example
+        400:
+          description: page not found
+        500:
+          description: internal server error

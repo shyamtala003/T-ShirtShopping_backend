@@ -1,0 +1,36 @@
+{
+  "name": "tshirtstore",
+  "version": "1.0.0",
+  "description": "backend for tshirtstore online shopping web app",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "backend",
+    "tshirtstore"
+  ],
+  "author": "shyam tala",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.34.0",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.0",
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.9.1",
+    "razorpay": "^2.8.6",
+    "stripe": "^11.13.0",
+    "swagger-ui-express": "^4.6.2",
+    "validator": "^13.9.0",
+    "yaml": "^2.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.21"
+  }
+}
