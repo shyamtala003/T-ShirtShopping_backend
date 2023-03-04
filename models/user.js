@@ -28,9 +28,11 @@ const UserSchema = mongoose.Schema({
   photo: {
     id: {
       type: String,
+      required: [true, "please provide a id of profile image"],
     },
     secure_url: {
       type: String,
+      required: [true, "please provide a secure url of profile image"],
     },
   },
   role: {

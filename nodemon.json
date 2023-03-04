@@ -1,3 +1,3 @@
 {
-    "ext":".jsx, .yaml, .json , .js"
+    "ext":".jsx, .yaml, .json , .js, .env"
 }

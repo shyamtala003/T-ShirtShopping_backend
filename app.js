@@ -22,7 +22,12 @@ app.use(express.urlencoded({ extended: false }));
 
 // middleware for file upload and cokies
 app.use(cookieParser());
-app.use(expressFileupload());
+app.use(
+  expressFileupload({
+    useTempFiles: true,
+    tempFileDir: "/uploads/",
+  })
+);
 
 // use morgon middleware
 app.use(morgan("dev"));
