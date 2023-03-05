@@ -13,9 +13,13 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// connect to database
-connectToDB();
+// first connect database and then run server
+let connectDbAndServer = async () => {
+  let result = await connectToDB();
+  console.log(result);
 
-app.listen(process.env.PORT, () => {
-  console.log("server is running on port: " + process.env.PORT);
-});
+  app.listen(process.env.PORT, () => {
+    console.log("server is running on port: " + process.env.PORT);
+  });
+};
+connectDbAndServer();

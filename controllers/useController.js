@@ -1,6 +1,5 @@
 const User = require("../models/user");
 const cookieToken = require("../utils/cookieToken");
-const fileUploader = require("express-fileupload");
 const cloudinary = require("cloudinary");
 
 exports.signup = async (req, res) => {
@@ -50,6 +49,42 @@ exports.signup = async (req, res) => {
   } catch (error) {
     res.send(error.message);
   }
+};
+
+exports.login = async (req, res) => {
+  try {
+    // 1.collect data from user
+    const { email, password } = req.body;
+
+    //2.check user data exist or not
+    if (!(email && password)) {
+      return res.status(402).send("please enter email and password");
+    }
+
+    // 3.fetch data from database using email
+    let user = await User.findOne({ email }).select("+password");
+    if (!user) {
+      return res
+        .status(401)
+        .send("no user found in over records from this email: " + email);
+    }
+
+    // 4.compare password
+    let isPasswordMatched = await user.isValidatedPassword(password);
+    if (!isPasswordMatched) {
+      return res.status(401).send("invalid password");
+    }
+
+    // 5.if all is good then send token in cookie
+    // generate a token and send it in cookie and json response
+    cookieToken(user, res);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.logout = (req, res) => {
+  res.clearCookie("token").send("user loggedout succefully");
 };
 
 exports.postform = (req, res) => {
