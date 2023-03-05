@@ -1,6 +1,7 @@
 const User = require("../models/user");
 const cookieToken = require("../utils/cookieToken");
 const cloudinary = require("cloudinary");
+const emailHelper = require("../utils/emainHelper");
 
 exports.signup = async (req, res) => {
   try {
@@ -85,6 +86,53 @@ exports.login = async (req, res) => {
 
 exports.logout = (req, res) => {
   res.clearCookie("token").send("user loggedout succefully");
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const email = req.body.email;
+
+    // 1.check email filled up or not by user
+    if (!email)
+      return res.status(401).send("email is required for forgot password");
+
+    // 2.check email exist or not
+    let user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).send("User not exist");
+    }
+
+    // 3.generate token and store into database
+    let token = user.getForgotPasswordToken();
+    await user.save({ validateBeforeSave: false });
+
+    // 4.send email with token
+    const myUrl = `${req.protocol}://${req.get(
+      "host"
+    )}/password/reset/${token}`;
+
+    const html = `
+    <p>Please click on the following link to reset your password:</p>
+    <p><a href="${myUrl}">${myUrl}</a></p>
+    <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
+    `;
+
+    try {
+      await emailHelper({
+        to: user.email,
+        subject: "reset password",
+        text: "reset password",
+        html,
+      });
+      res.status(200).json({ success: true, msg: "email sent successfully" });
+    } catch (error) {
+      user.forgotPasswordToken = undefined;
+      user.forgotPasswordExpiry = undefined;
+      await user.save({ validateBeforeSave: false });
+    }
+  } catch (error) {
+    res.status(401).send(error);
+  }
 };
 
 exports.postform = (req, res) => {
