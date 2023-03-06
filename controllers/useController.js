@@ -184,6 +184,32 @@ exports.getUserLoggedIn = async (req, res) => {
   }
 };
 
+exports.updatePassword = async (req, res) => {
+  try {
+    // 1. get user via middlware req.user
+    let user = await User.findById(req.user.id).select("+password");
+
+    // 2. collect old and and new password from user and validate old password also
+    if (!(req.body.newPassword && req.body.oldPassword)) {
+      return res.send("please enter password and old password");
+    }
+
+    let isPasswordValid = await user.isValidatedPassword(req.body.oldPassword);
+
+    if (!isPasswordValid) {
+      return res.send("current password is not valid");
+    }
+
+    user.password = req.body.newPassword;
+    user = await user.save();
+
+    // generate new cookie
+    cookieToken(user, res);
+  } catch (error) {
+    res.send(error.message);
+  }
+};
+
 exports.postform = (req, res) => {
   res.render("postform");
 };
