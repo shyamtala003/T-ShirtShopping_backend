@@ -2,6 +2,7 @@ const User = require("../models/user");
 const cookieToken = require("../utils/cookieToken");
 const cloudinary = require("cloudinary");
 const emailHelper = require("../utils/emainHelper");
+const crypto = require("crypto");
 
 exports.signup = async (req, res) => {
   try {
@@ -109,7 +110,7 @@ exports.forgotPassword = async (req, res) => {
     // 4.send email with token
     const myUrl = `${req.protocol}://${req.get(
       "host"
-    )}/password/reset/${token}`;
+    )}api/v1/password/reset/${token}`;
 
     const html = `
     <p>Please click on the following link to reset your password:</p>
@@ -132,6 +133,41 @@ exports.forgotPassword = async (req, res) => {
     }
   } catch (error) {
     res.status(401).send(error);
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    let token = req.params.token;
+    token = crypto.createHash("sha256").update(token).digest("hex");
+
+    let user = await User.findOne({
+      forgotPasswordToken: token,
+      forgotPasswordExpiry: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      res.status(403).send("token is invalid or expired");
+    }
+
+    if (!(req.body.password && req.body.conformPassword)) {
+      res.status(402).send("please enter password and comform password");
+    }
+
+    if (req.body.password !== req.body.conformPassword) {
+      res.status(402).send("password and confirm password not matched");
+    }
+
+    user.password = req.body.password;
+    user.forgotPasswordExpiry = undefined;
+    user.forgotPasswordToken = undefined;
+
+    user = await user.save();
+
+    // if everything is good then send token
+    cookieToken(user, res);
+  } catch (error) {
+    console.log(error);
   }
 };
 
