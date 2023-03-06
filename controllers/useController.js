@@ -171,6 +171,19 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
+exports.getUserLoggedIn = async (req, res) => {
+  try {
+    if (!req.user) {
+      res.status(403).send("You must be logged in");
+    }
+
+    let user = await User.findById(req.user.id);
+    res.send(user);
+  } catch (error) {
+    res.send(error);
+  }
+};
+
 exports.postform = (req, res) => {
   res.render("postform");
 };
