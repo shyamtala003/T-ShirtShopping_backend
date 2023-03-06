@@ -8,6 +8,7 @@ exports.signup = async (req, res) => {
   try {
     // 1.collect information from user
     let { name, email, password } = req.body;
+    email = String(email).toLowerCase();
 
     // 2.check all required filleds are filled up or not
     if (!(name && email && password)) {
@@ -56,7 +57,8 @@ exports.signup = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     // 1.collect data from user
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+    email = String(email).toLowerCase();
 
     //2.check user data exist or not
     if (!(email && password)) {
