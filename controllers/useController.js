@@ -212,6 +212,54 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
+exports.updateUser = async (req, res) => {
+  try {
+    // 1.check email and name is available or not for updatation
+    if (!(req.body.email && req.body.name)) {
+      return res.status(304).send("please enter email and name");
+    }
+
+    //2. collect information
+    let newData = {
+      name: req.body.name,
+      email: req.body.email,
+      photo: {},
+    };
+
+    // if photo uploads then run execute code of block
+    if (req.files) {
+      let user = await User.findById(req.user.id);
+      let oldImageId = user.photo.id;
+
+      // delete old photo from cloudinary
+      const imgDeleted = await cloudinary.v2.uploader.destroy(oldImageId);
+      console.log(imgDeleted);
+      // upload new user profile
+      let imageResult = await cloudinary.v2.uploader.upload(
+        req.files.photo.tempFilePath,
+        {
+          folder: "users",
+          width: 150,
+          crop: "scale",
+        }
+      );
+
+      newData.photo.id = imageResult.public_id;
+      newData.photo.secure_url = imageResult.secure_url;
+    }
+
+    // update data in DB
+    let updatedUser = await User.findByIdAndUpdate(req.user.id, newData, {
+      new: true,
+      runValidators: true,
+      useFindModified: false,
+    });
+    res.json(updatedUser);
+  } catch (error) {
+    res.json({ success: true, error: error });
+  }
+};
+
 exports.postform = (req, res) => {
   res.render("postform");
 };
