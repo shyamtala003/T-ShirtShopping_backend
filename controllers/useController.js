@@ -260,6 +260,98 @@ exports.updateUser = async (req, res) => {
   }
 };
 
+// admin/users
+exports.adminAllUsers = async (req, res) => {
+  try {
+    let allUser = await User.find();
+    res.status(200).json({ success: true, allUser });
+  } catch (error) {
+    res.status(402).json({
+      success: false,
+      error,
+    });
+  }
+};
+// admin/user/:id
+exports.adminSelectedUser = async (req, res) => {
+  try {
+    let selectedUser = await User.findById(req.params.id);
+    if (!selectedUser) {
+      return res.status(400).json({ success: false, error: "user not found" });
+    }
+    res.status(200).json({ success: true, selectedUser });
+  } catch (error) {
+    res.status(402).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+exports.adminUpdateOneUser = async (req, res) => {
+  try {
+    // 1.check email and name is available or not for updatation
+    if (
+      req.query.email == undefined ||
+      req.query.name == undefined ||
+      req.query.role == undefined
+    ) {
+      res.status(400).json({
+        success: false,
+        error: "name,email and role must be required",
+      });
+    } else {
+      //2. collect information
+      let newData = {
+        name: req.query.name,
+        email: req.query.email,
+        role: req.query.role,
+      };
+
+      // update data in DB
+      let updatedUser = await User.findByIdAndUpdate(req.params.id, newData, {
+        new: true,
+        runValidators: true,
+        useFindModified: false,
+      });
+      res.json(updatedUser);
+    }
+  } catch (error) {
+    res.json({ success: true, error: error });
+  }
+};
+
+exports.adminDeleteOneUser = async (req, res) => {
+  try {
+    let user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, error: "no such user found", user });
+    }
+
+    await cloudinary.v2.uploader.destroy(user.photo.id);
+    await User.findByIdAndDelete(req.user.id);
+    res.status(200).json({ success: true, message: "user deleted" });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+// manager/users
+exports.managerAllUsers = async (req, res) => {
+  try {
+    let allUser = await User.find({ role: "user" });
+    res.status(200).json({ success: true, allUser });
+  } catch (error) {
+    res.status(402).json({
+      success: false,
+      error,
+    });
+  }
+};
+
 exports.postform = (req, res) => {
   res.render("postform");
 };

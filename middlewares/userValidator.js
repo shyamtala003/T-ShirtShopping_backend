@@ -28,3 +28,14 @@ exports.loggedInUser = async (req, res, next) => {
 
   next();
 };
+
+exports.customeRoles = (...role) => {
+  return (req, res, next) => {
+      if (!role.includes(req.user.role)) {
+        return res
+          .status("404")
+          .json({ success: false, error: "Access Denied" });
+      }
+      next();
+  }
+};
