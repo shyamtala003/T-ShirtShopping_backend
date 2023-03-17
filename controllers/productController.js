@@ -25,12 +25,12 @@ exports.addNewProduct = async (req, res) => {
             
             // code for uploading just signle images
             if (!Array.isArray(req.files.photos)) {
-                let filedata = req.files.filedata;
+                let filedata = req.files.photos;
                 let result = await cloudinary.v2.uploader.upload(filedata.tempFilePath, {
                     folder: "products",
                 });
                 imageObject.push({
-                    id: result.id,
+                    id: result.public_id,
                     secure_url: result.secure_url
                 });
             }
