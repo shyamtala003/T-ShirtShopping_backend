@@ -1,23 +1,11 @@
 const mongoose = require("mongoose");
 
-// name
-// price
-// description
-// photos[]
-// category
-// brand
-// stock
-// rating
-// numOfReviews
-// reviews[user,name,rating,comment]
-// user
-// created_at
 const productSchema = mongoose.Schema({
     name: {
         type: String,
         required: [true, "product name should be required"],
         trim: true,
-        maxlength: [20, "product name should not be longer than 20 characters"],
+        maxlength: [50, "product name should not be longer than 20 characters"],
     },
     price: {
         type: Number,
@@ -50,16 +38,14 @@ const productSchema = mongoose.Schema({
         },
     },
     brand: {
-        name: {
-            type: String,
-            required: [true, "brand name should be required"],
-            trim: true,
-            maxlength: [20, "brand name should not be longer than 20 characters"],
-        }
+        type: String,
+        required: [true, "brand name should be required"],
+        trim: true,
+        maxlength: [20, "brand name should not be longer than 20 characters"],
     },
     stock: {
         type: Number,
-        required: [true, "product stock should be required"],
+        required: [true, "product stock number should be required"],
     },
     ratings: {
         type: Number,

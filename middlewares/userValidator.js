@@ -11,7 +11,7 @@ exports.loggedInUser = async (req, res, next) => {
 
   // 2.if token to exist then send error response
   if (!token) {
-    return res.status(402).send("token not found");
+    return res.status(402).json({success:false,error:"token not found"});
   }
 
   let decode;

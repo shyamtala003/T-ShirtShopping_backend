@@ -1,9 +1,12 @@
 const express=require("express");
 const router=express.Router();
 
-// import controller
-const {product}=require("../controllers/productController");
+// import middlware for validating user
+const {loggedInUser}=require("../middlewares/userValidator");
 
-router.route("/products").get(product);
+// import controller
+const {addNewProduct}=require("../controllers/productController");
+
+router.route("/addproducts").post(loggedInUser,addNewProduct);
 
 module.exports=router;
