@@ -112,7 +112,7 @@ exports.forgotPassword = async (req, res) => {
     // 4.send email with token
     const myUrl = `${req.protocol}://${req.get(
       "host"
-    )}api/v1/password/reset/${token}`;
+    )}/api/v1/password/reset/${token}`;
 
     const html = `
     <p>Please click on the following link to reset your password:</p>
@@ -216,14 +216,14 @@ exports.updateUser = async (req, res) => {
   try {
     // 1.check email and name is available or not for updatation
     if (!(req.body.email && req.body.name)) {
-      return res.status(304).send("please enter email and name");
+      return res.status(304).json("please enter email and name");
     }
 
     //2. collect information
     let newData = {
       name: req.body.name,
       email: req.body.email,
-      photo: {},
+      photo:{}
     };
 
     // if photo uploads then run execute code of block
@@ -254,9 +254,9 @@ exports.updateUser = async (req, res) => {
       runValidators: true,
       useFindModified: false,
     });
-    res.json(updatedUser);
+    res.json({success:true,updatedUser});
   } catch (error) {
-    res.json({ success: true, error: error });
+    res.json({ success: false,  error: error.message });
   }
 };
 
