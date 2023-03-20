@@ -1,13 +1,12 @@
-const Product = require('../models/product');
-const cloudinary = require('cloudinary');
-
-
+const Product = require("../models/product");
+const cloudinary = require("cloudinary");
+const WhereClause = require("../utils/whereClause");
+const {
+    myWhereClause
+} = require("../utils/myWhereClause");
 
 exports.addNewProduct = async (req, res) => {
     try {
-
-        
-
         // upload all product images
         // variable for inserting product images into DB
         let imageObject = [];
@@ -16,22 +15,22 @@ exports.addNewProduct = async (req, res) => {
         if (!req.files) {
             return res.status(400).json({
                 success: false,
-                error: "No files were uploaded."
+                error: "No files were uploaded.",
             });
         }
 
         if (req.files) {
-            
-            
             // code for uploading just signle images
             if (!Array.isArray(req.files.photos)) {
                 let filedata = req.files.photos;
-                let result = await cloudinary.v2.uploader.upload(filedata.tempFilePath, {
-                    folder: "products",
-                });
+                let result = await cloudinary.v2.uploader.upload(
+                    filedata.tempFilePath, {
+                        folder: "products",
+                    }
+                );
                 imageObject.push({
                     id: result.public_id,
-                    secure_url: result.secure_url
+                    secure_url: result.secure_url,
                 });
             }
 
@@ -56,28 +55,79 @@ exports.addNewProduct = async (req, res) => {
                         });
                     }
                 }
-                
-            }    
+            }
         }
 
         let productInfo = {
             name: req.body.name,
             price: req.body.price,
             description: req.body.description,
-            photos:imageObject,
+            photos: imageObject,
             brand: req.body.brand,
             stock: req.body.stock,
             category: req.body.category,
-            user : req.user._id
-
+            user: req.user._id,
         };
 
-        let product=await Product.create(productInfo);
+        let product = await Product.create(productInfo);
         res.status(201).json({
             success: true,
-            product: product
+            product: product,
+        });
+    } catch (error) {
+        res.status(404).json({
+            success: false,
+            error: error.message,
+        });
+    }
+};
+exports.getAllProduct = async (req, res) => {
+    try {
+
+        // for counting number of product exist in databse
+        const totalcountProduct = await Product.countDocuments();
+
+
+        let products;
+        let quert = myWhereClause(Product, req.query);
+        if (req.query.page) {
+            let resultperPage = 2;
+            let currentPage = req.query.page;
+            const skipVal = resultperPage * (currentPage - 1);
+            products = await Product.find(quert).limit(resultperPage).skip(skipVal);
+        } else {
+            products = await Product.find(quert);
+        }
+        res.status(200).json({
+            success: true,
+            products,
+            totalcountProduct,
+            resultLength: products.length
         });
 
+
+        // class base code for filtering the products
+        // const resultPerPage = 6;
+        // const totalcountProduct = await Product.countDocuments();
+
+        // const productsObj = new WhereClause(Product, req.query)
+        //   .search()
+        //   .filter();
+
+        // let products = await productsObj.base;
+        // const filteredProductNumber = products.length;
+
+        // //products.limit().skip()
+
+        // productsObj.pager(resultPerPage);
+        // products = await productsObj.base.clone();
+
+        // res.status(200).json({
+        //   success: true,
+        //   products,
+        //   filteredProductNumber,
+        //   totalcountProduct,
+        // });
 
     } catch (error) {
         res.status(404).json({
@@ -85,4 +135,4 @@ exports.addNewProduct = async (req, res) => {
             error: error.message
         });
     }
-}
+};

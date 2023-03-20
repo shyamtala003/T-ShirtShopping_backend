@@ -2,11 +2,15 @@ const express=require("express");
 const router=express.Router();
 
 // import middlware for validating user
-const {loggedInUser}=require("../middlewares/userValidator");
+const {loggedInUser,customeRoles}=require("../middlewares/userValidator");
 
 // import controller
-const {addNewProduct}=require("../controllers/productController");
+const {addNewProduct, getAllProduct}=require("../controllers/productController");
 
-router.route("/addproducts").post(loggedInUser,addNewProduct);
+// user routes
+router.route("/products").get(loggedInUser,getAllProduct);
+
+// admin route
+router.route("/admin/addproducts").post(loggedInUser,customeRoles('manager','admin'),addNewProduct);
 
 module.exports=router;
