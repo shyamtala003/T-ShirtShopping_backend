@@ -5,12 +5,14 @@ const router=express.Router();
 const {loggedInUser,customeRoles}=require("../middlewares/userValidator");
 
 // import controller
-const {addNewProduct, getAllProduct}=require("../controllers/productController");
+const {addNewProduct, getAllProduct, admingetAllProducts, getOneProduct}=require("../controllers/productController");
 
 // user routes
 router.route("/products").get(loggedInUser,getAllProduct);
+router.route("/product/:id").get(loggedInUser,getOneProduct);
 
 // admin route
 router.route("/admin/addproducts").post(loggedInUser,customeRoles('manager','admin'),addNewProduct);
+router.route("/admin/adminAllProducts").get(loggedInUser,customeRoles('manager','admin'),admingetAllProducts);
 
 module.exports=router;

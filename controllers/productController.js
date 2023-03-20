@@ -81,6 +81,7 @@ exports.addNewProduct = async (req, res) => {
         });
     }
 };
+
 exports.getAllProduct = async (req, res) => {
     try {
 
@@ -136,3 +137,26 @@ exports.getAllProduct = async (req, res) => {
         });
     }
 };
+
+exports.getOneProduct = async (req, res)=>{
+    try {
+        const product = await Product.findById(req.params.id);
+        res.status(200).json({
+            success: true,
+            product
+        });
+    } catch (error) {
+        res.status(404).json({
+            success: false,
+            error: error.message
+        });
+    }
+}
+
+exports.admingetAllProducts =async (req, res) => {
+    let products=await Product.find();
+    res.status(200).json({
+        success: true,
+        products
+    });
+}
