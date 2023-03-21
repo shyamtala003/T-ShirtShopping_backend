@@ -1,6 +1,7 @@
 const Product = require("../models/product");
 const cloudinary = require("cloudinary");
 const WhereClause = require("../utils/whereClause");
+const mongoose = require("mongoose");
 const {
     myWhereClause
 } = require("../utils/myWhereClause");
@@ -138,9 +139,17 @@ exports.getAllProduct = async (req, res) => {
     }
 };
 
-exports.getOneProduct = async (req, res)=>{
+exports.getOneProduct = async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id);
+        const product = await Product.findById({_id:String(req.params.id)});
+
+        if (!product) {
+            return res.status(403).json({
+                success: false,
+                error: "no such product available in our site."
+            });
+        }
+
         res.status(200).json({
             success: true,
             product
@@ -153,10 +162,172 @@ exports.getOneProduct = async (req, res)=>{
     }
 }
 
-exports.admingetAllProducts =async (req, res) => {
-    let products=await Product.find();
+
+
+
+exports.admingetAllProducts = async (req, res) => {
+    let products = await Product.find();
     res.status(200).json({
         success: true,
         products
     });
+}
+
+exports.adminGetOneProduct = async (req, res) => {
+    try {
+        const product = await Product.findById({_id:String(req.params.id)});
+
+        if (!product) {
+            return res.status(403).json({
+                success: false,
+                error: "no such product available in our site."
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            product
+        });
+    } catch (error) {
+        res.status(404).json({
+            success: false,
+            error: error.message
+        });
+    }
+}
+
+exports.adminUpdateOneProduct = async (req, res) => {
+    try {
+        // 1. find the product
+        if(!mongoose.isValidObjectId(req.params.id))
+        {
+            return res.status(403).json({
+                success: false,
+                error: "no such product available in our site."
+            });
+        }
+
+        const product = await Product.findById(req.params.id);
+
+        // variable for inserting product images into DB
+        let imageObject = [];
+
+        // 2. check if the product available
+        if (!product) {
+            return res.status(403).json({
+                success: false,
+                error: "no such product available in our site."
+            });
+        }
+
+        // 3.. update the files if new file is available
+        if (req.files) {
+
+            // 1. delete old product images
+            if (product.photos) {
+                for (let index = 0; index < product.photos.length; index++) {
+                    await cloudinary.v2.uploader.destroy(product.photos[index].id);
+                }
+            }
+
+            // 2. upload the new t-shirt images
+            // code for uploading just signle images
+            if (!Array.isArray(req.files.photos)) {
+                let filedata = req.files.photos;
+                let result = await cloudinary.v2.uploader.upload(
+                    filedata.tempFilePath, {
+                        folder: "products",
+                    }
+                );
+                imageObject.push({
+                    id: result.public_id,
+                    secure_url: result.secure_url,
+                });
+            }
+
+            //   code for uploading multiple files
+            if (Array.isArray(req.files.photos)) {
+                let result = [];
+                if (req.files) {
+                    for (var i = 0; i < req.files.photos.length; i++) {
+                        result.push(
+                            cloudinary.v2.uploader.upload(req.files.photos[i].tempFilePath, {
+                                folder: "products",
+                            })
+                        );
+                    }
+
+                    let finalOutput = await Promise.all(result);
+
+                    for (let index = 0; index < finalOutput.length; index++) {
+                        imageObject.push({
+                            id: finalOutput[index].public_id,
+                            secure_url: finalOutput[index].secure_url,
+                        });
+                    }
+                }
+            }
+            // set photos info into req.body
+            req.body.photos = imageObject;
+        }
+
+        // 4. update the product
+        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true,
+            useFindModified: false,
+        });
+
+        res.status(200).json({success:true,message:"product updated successfully",updatedProduct:updatedProduct});
+
+
+    } catch (err) {
+        res.status(403).json({
+            success: false,
+            error: err.message
+        });
+    }
+}
+
+exports.adminDeleteOneProduct = async (req, res) => {
+    try {
+        // 1. check id is valid or not
+        if(!mongoose.isValidObjectId(req.params.id))
+        {
+            return res.status(403).json({
+                success: false,
+                error: "no such product available in our site."
+            });
+        }
+
+        // 2. fetch product info from db
+        const product = await Product.findById(req.params.id);
+
+        // 3. check if the product available
+        if (!product) {
+            return res.status(403).json({
+                success: false,
+                error: "no such product available in our site."
+            });
+        }
+
+        // 4. delete old product images
+        if (product.photos) {
+            for (let index = 0; index < product.photos.length; index++) {
+                cloudinary.v2.uploader.destroy(product.photos[index].id);
+            }
+        }
+        
+        // 4. update the product
+        const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+
+        res.status(200).json({success:true,message:"product deleteded successfully",deletedProduct});
+
+
+    } catch (err) {
+        res.status(403).json({
+            success: false,
+            error: err.message
+        });
+    }
 }
