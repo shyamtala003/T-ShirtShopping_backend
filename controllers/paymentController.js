@@ -39,7 +39,7 @@ exports.captureStripePayment = async (req, res) => {
     }
 }
 
-exports.sendStripeKey = (req, res) => {
+exports.sendRazorpaypeKey = (req, res) => {
     try {
         res.status(200).json({
             razorpaykey: process.env.RAZORPAY_API_KEY,
@@ -52,7 +52,7 @@ exports.sendStripeKey = (req, res) => {
     }
 }
 
-exports.exports.captureRazorpayPayment = async (req, res) => {
+exports.captureRazorpayPayment = async (req, res) => {
     try {
         let instance = new Razorpay({
             key_id: process.env.RAZORPAY_API_KEY,
