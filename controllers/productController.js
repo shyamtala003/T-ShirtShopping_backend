@@ -141,7 +141,9 @@ exports.getAllProduct = async (req, res) => {
 
 exports.getOneProduct = async (req, res) => {
     try {
-        const product = await Product.findById({_id:String(req.params.id)});
+        const product = await Product.findById({
+            _id: String(req.params.id)
+        });
 
         if (!product) {
             return res.status(403).json({
@@ -162,7 +164,124 @@ exports.getOneProduct = async (req, res) => {
     }
 }
 
+exports.addReview = async (req, res) => {
+    try {
+        const {
+            rating,
+            comment,
+            productId
+        } = req.body;
 
+        const review = {
+            user: req.user._id,
+            name: req.user.name,
+            rating: Number(rating),
+            comment,
+        };
+
+        const product = await Product.findById(productId);
+
+        const AlreadyReview = product.reviews.find(
+            (rev) => rev.user.toString() === req.user._id.toString()
+        );
+
+        if (AlreadyReview) {
+            product.reviews.forEach((review) => {
+                if (review.user.toString() === req.user._id.toString()) {
+                    review.comment = comment;
+                    review.rating = rating;
+                }
+            });
+        } else {
+            product.reviews.push(review);
+            product.numberOfReviews = product.reviews.length;
+        }
+
+        // adjust ratings
+
+        product.ratings =
+            product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+            product.reviews.length;
+
+        //save
+
+        await product.save({
+            validateBeforeSave: false
+        });
+
+        res.status(200).json({
+            success: true,
+            AlreadyReview
+        });
+    } catch (error) {
+        res.status(403).json({
+            success: false,
+            error: error.message
+        });
+    }
+
+};
+
+exports.deleteReview = async (req, res) => {
+    try {
+        const {
+            productId
+        } = req.body;
+
+        const product = await Product.findById(productId);
+
+        const reviews = product.reviews.filter(
+            (rev) => rev.user.toString() !== req.user._id.toString()
+        );
+
+        const numberOfReviews = reviews.length;
+
+        // adjust ratings
+
+        let ratings =
+            product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+            product.reviews.length;
+
+        //update the product
+
+        await Product.findByIdAndUpdate(
+            productId, {
+                reviews,
+                ratings,
+                numberOfReviews,
+            }, {
+                new: true,
+                runValidators: true,
+                useFindAndModify: false,
+            }
+        );
+
+        res.status(200).json({
+            success: true,
+        });
+
+    } catch (error) {
+        res.status(401).json({
+            success: false,
+            message: error.message
+        })
+    }
+};
+
+exports.getOnlyReviewsForOneProduct = async (req, res) => {
+    try {
+        const product = await Product.findById({_id:req.query.id});
+
+        res.status(200).json({
+            success: true,
+            reviews: product.reviews
+        });
+    } catch (error) {
+        res.status(401).json({
+            error: error.message
+        });
+    }
+};
 
 
 exports.admingetAllProducts = async (req, res) => {
@@ -175,7 +294,9 @@ exports.admingetAllProducts = async (req, res) => {
 
 exports.adminGetOneProduct = async (req, res) => {
     try {
-        const product = await Product.findById({_id:String(req.params.id)});
+        const product = await Product.findById({
+            _id: String(req.params.id)
+        });
 
         if (!product) {
             return res.status(403).json({
@@ -199,8 +320,7 @@ exports.adminGetOneProduct = async (req, res) => {
 exports.adminUpdateOneProduct = async (req, res) => {
     try {
         // 1. find the product
-        if(!mongoose.isValidObjectId(req.params.id))
-        {
+        if (!mongoose.isValidObjectId(req.params.id)) {
             return res.status(403).json({
                 success: false,
                 error: "no such product available in our site."
@@ -278,7 +398,11 @@ exports.adminUpdateOneProduct = async (req, res) => {
             useFindModified: false,
         });
 
-        res.status(200).json({success:true,message:"product updated successfully",updatedProduct:updatedProduct});
+        res.status(200).json({
+            success: true,
+            message: "product updated successfully",
+            updatedProduct: updatedProduct
+        });
 
 
     } catch (err) {
@@ -292,8 +416,7 @@ exports.adminUpdateOneProduct = async (req, res) => {
 exports.adminDeleteOneProduct = async (req, res) => {
     try {
         // 1. check id is valid or not
-        if(!mongoose.isValidObjectId(req.params.id))
-        {
+        if (!mongoose.isValidObjectId(req.params.id)) {
             return res.status(403).json({
                 success: false,
                 error: "no such product available in our site."
@@ -317,11 +440,15 @@ exports.adminDeleteOneProduct = async (req, res) => {
                 cloudinary.v2.uploader.destroy(product.photos[index].id);
             }
         }
-        
+
         // 4. update the product
         const deletedProduct = await Product.findByIdAndDelete(req.params.id);
 
-        res.status(200).json({success:true,message:"product deleteded successfully",deletedProduct});
+        res.status(200).json({
+            success: true,
+            message: "product deleteded successfully",
+            deletedProduct
+        });
 
 
     } catch (err) {

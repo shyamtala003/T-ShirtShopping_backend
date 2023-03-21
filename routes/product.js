@@ -15,12 +15,20 @@ const {
     getOneProduct,
     adminUpdateOneProduct,
     adminDeleteOneProduct,
-    adminGetOneProduct
+    adminGetOneProduct,
+    getOnlyReviewsForOneProduct,
+    deleteReview,
+    addReview
 } = require("../controllers/productController");
 
 // user routes
 router.route("/products").get(loggedInUser, getAllProduct);
 router.route("/product/:id").get(loggedInUser, getOneProduct);
+
+router.route("/review").put(loggedInUser, addReview);
+router.route("/review").delete(loggedInUser, deleteReview);
+router.route("/reviews").get(loggedInUser, getOnlyReviewsForOneProduct);
+
 
 // admin route
 router.route("/admin/addproducts").post(loggedInUser, customeRoles('admin'), addNewProduct);
