@@ -25,7 +25,7 @@ app.use(cookieParser());
 app.use(
   expressFileupload({
     useTempFiles: true,
-    tempFileDir: "/uploads/",
+    tempFileDir: "/temp/",
   })
 );
 
