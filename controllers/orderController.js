@@ -19,12 +19,12 @@ exports.createOrder=async(req,res)=>{
             taxAmount,
             shippingAmount,
             totalAmount,
-            user: req.user._id,
+            user: req.user.id,
           });
         
           res.status(200).json({
             success: true,
-            order,
+            order
           });
     } catch (error) {
         res.status(403).json({success:false,error: error.message});
